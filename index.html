@@ -412,6 +412,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 32px 24px 28px;
+  -webkit-overflow-scrolling: touch;
 }
 .pf-title {
   font-family: 'Cormorant Garamond', serif;
@@ -482,6 +483,7 @@ html, body {
   align-items: center;
   margin: 6px 0 10px;
   width: min(100%, 320px);
+  flex-shrink: 0;
 }
 .polaroid {
   background: #fff;
@@ -653,6 +655,11 @@ html, body {
   .pf-sub,
   .ps-sub {
     font-size: 12px;
+  }
+  #panel-face {
+    justify-content: flex-start;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
   }
   .polaroid {
     width: min(100%, 252px);
