@@ -241,6 +241,7 @@ html, body {
 .slide-8  { background: linear-gradient(160deg, #1a1108 0%, #2C1F0E 100%); }
 .slide-9  { background: linear-gradient(160deg, #FDF6E8 0%, #FAF0D0 100%); }
 .slide-10 { background: linear-gradient(160deg, #2C1F0E 0%, #1a1108 100%); }
+.slide-sorry { background: linear-gradient(160deg, #1a1108 0%, #2C1F0E 100%); }
 
 /* Text helpers */
 .label {
@@ -333,6 +334,13 @@ html, body {
   background-size: cover;
   background-position: center;
   width: 100%; height: 100%;
+  filter: blur(22px) brightness(0.55);
+  transform: scale(1.15);
+}
+.slide-6 .photo-fit {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
 }
 .slide-6 .photo-overlay {
   position: absolute; inset: 0;
@@ -602,6 +610,21 @@ html, body {
   color: rgba(44,31,14,.45);
   text-transform: uppercase;
 }
+.coupon-copy {
+  display: inline-block;
+  margin: 2px auto 10px;
+  font-family: 'Jost', sans-serif;
+  font-size: 10px; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.coupon-copy:hover, .coupon-copy:active { background: var(--gold); color: #fff; }
 #scratch-canvas {
   position: absolute;
   top: 0; left: 0;
@@ -859,6 +882,12 @@ html, body {
         <p class="tagline fade-up">A little something from all of us</p>
       </div>
 
+      <!-- SLIDE: SORRY -->
+      <div class="slide slide-sorry" data-index="1">
+        <h2 class="headline italic fade-up" style="font-size:52px">We&rsquo;re sorry.</h2>
+        <p class="sub fade-up" style="opacity:0.6;font-size:14px">We missed your big day &mdash;<br>and this gift is embarrassingly late.<br>But it comes with all our love, twice over.</p>
+      </div>
+
       <!-- SLIDE 2 -->
       <div class="slide slide-2" data-index="1">
         <h2 class="headline dark-text fade-up" style="font-size:42px">Some love stories begin quietly.</h2>
@@ -886,22 +915,12 @@ html, body {
       <!-- SLIDE 6: Group Photo -->
       <div class="slide slide-6" data-index="5">
         <div class="photo-bg" id="group-photo-bg"></div>
+        <img class="photo-fit" id="group-photo-fit" alt="All of us">
         <div class="photo-overlay"></div>
         <div class="caption-wrap">
           <p class="caption-main fade-up">&ldquo;In another universe, we were there.&rdquo;</p>
           <p class="caption-sub fade-up">in this one &mdash; we&rsquo;re just really, really happy for you</p>
         </div>
-      </div>
-
-      <!-- SLIDE 7 -->
-      <div class="slide slide-7" data-index="6">
-        <h2 class="headline dark-text fade-up" style="font-size:32px;line-height:1.35">When the news broke &mdash;<br>one of us just started dancing.</h2>
-        <p class="sub dark-text fade-up">No music. No reason needed.</p>
-      </div>
-
-      <!-- SLIDE 8 -->
-      <div class="slide slide-8" data-index="7">
-        <h2 class="headline italic fade-up" style="font-size:38px;line-height:1.3">That&rsquo;s how hard<br>we were rooting for you.</h2>
       </div>
 
       <!-- SLIDE 9 -->
@@ -978,6 +997,7 @@ html, body {
         <div class="coupon-amount" id="coupon-amount"></div>
         <div class="coupon-divider"></div>
         <div class="coupon-code" id="coupon-code"></div>
+        <button class="coupon-copy" id="btn-copy-coupon" onclick="copyCouponCode()">Copy Code</button>
         <div class="coupon-validity" id="coupon-validity"></div>
       </div>
       <canvas id="scratch-canvas"></canvas>
@@ -1015,15 +1035,15 @@ html, body {
 const CONFIG = Object.freeze({
   groom: "Maga Siyaman",
   bride: "Saranya",
-  groupPhoto: "./images/group.jpg",
+  groupPhoto: "./images/group.jpeg",
   backgroundMusic: "./audio/background.mp3",
   backgroundMusicVolume: 0.1,
   friends: ["Mohith", "Tamil", "Gowthami", "Swathi", "Abinaya", "Sai Nikhil", "Rahul"],
   coupon: {
     platform: "Amazon",
-    amount: "₹XXXX",
-    code: "XXXX-XXXX-XXXX",
-    validity: "Valid till DD Month YYYY"
+    amount: "₹5000",
+    code: "QTJF-JFCPBK-GH6N",
+    validity: "01 November 2026"
   },
   imgbbApiKey: "eea70c4c7223a8bbe9422d625289593d",
   slideDuration: 6000,
@@ -1034,7 +1054,7 @@ const CONFIG = Object.freeze({
 //  GLOBALS
 // ============================================================
 let currentSlide = 0;
-const TOTAL_SLIDES = 10;
+const TOTAL_SLIDES = document.querySelectorAll(".slide").length;
 let autoTimer = null;
 let isPaused = false;
 let storyEnded = false;
@@ -1139,6 +1159,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Group photo background
   var photoBg = document.getElementById("group-photo-bg");
   photoBg.style.backgroundImage = "url('" + CONFIG.groupPhoto + "')";
+  document.getElementById("group-photo-fit").src = CONFIG.groupPhoto;
 
   // Build progress bar
   var pb = document.getElementById("progress-bar");
@@ -1668,10 +1689,40 @@ function checkScratchProgress() {
     scratchRevealed = true;
     setTimeout(function() {
       scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      scratchCanvas.style.pointerEvents = "none";
       fireConfetti();
       document.getElementById("btn-to-signoff").style.display = "block";
     }, 300);
   }
+}
+
+function copyCouponCode() {
+  var code = CONFIG.coupon.code;
+  var btn = document.getElementById("btn-copy-coupon");
+  function showCopied() {
+    btn.textContent = "Copied ✓";
+    setTimeout(function() { btn.textContent = "Copy Code"; }, 2000);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(showCopied).catch(function() {
+      fallbackCopyText(code);
+      showCopied();
+    });
+  } else {
+    fallbackCopyText(code);
+    showCopied();
+  }
+}
+
+function fallbackCopyText(text) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
 }
 
 // ============================================================
